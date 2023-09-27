@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transformers.js</title>
+</head>
+
+<body>
+    <main class="container">
+        <button id="startRecordingButton">startRecordingButton</button>
+        <p id="status"></p>
+        <p style="width: 100px; height:50px;">Current: Language:
+        <p id="language" style="width: 100px; height:50px;color:brown;font-size:50px;"></p>
+        </p>
+
+    </main>
+    <script src="scripts.js"></script>
+
+    <script type="module">
+
+        import { pipeline } from './scripts.js';
+
+
+        let transcriber = await pipeline('automatic-speech-recognition', './whisper-tiny');
+
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let base64Data = null;
+        let currentLangauge = "Urdu";
+        document.getElementById("language").innerHTML = currentLangauge
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function (stream) {
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = function (event) {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = function () {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const reader = new FileReader();
+
+                        reader.onload = async function () {
+                            base64Data = reader.result.split(',')[1];
+                            const mimeType = "audio/wav"; 
+                            const dataURI = `data:${mimeType};base64,${base64Data}`;
+                            let output = await transcriber(dataURI,{ language: 'french', task: 'transcribe' });
+                                   console.log(output)
+                            if (removePunctuationAndNonEnglish(output.text).toLowerCase().includes("bonjour")) {
+
+                                if (currentLangauge === "Urdu") {
+                                    currentLangauge = "English"
+                                  
+                                } else {
+                                    currentLangauge = "Urdu"
+                                  
+                                }
+                                document.getElementById("language").innerHTML = currentLangauge
+                                document.getElementById("status").innerHTML = output.text
+                            }
+                           
+
+                            console.log("Base64 audio data:", base64Data);
+                        };
+
+                        reader.readAsDataURL(audioBlob);
+
+                        audioChunks = [];
+
+
+                        mediaRecorder.start();
+                        setTimeout(() => {
+                            mediaRecorder.stop();
+                        }, 700);
+
+                    };
+
+                    mediaRecorder.start();
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 700);
+                })
+                .catch(function (error) {
+                    console.error('Error accessing microphone:', error);
+                });
+        }
+
+        document.getElementById("startRecordingButton").addEventListener("click", function () {
+            startRecording();
+        });
+
+
+
+
+        function removePunctuationAndNonEnglish(inputString) {
+            var cleanedString = inputString.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
+    
+            return cleanedString;
+          }
+          
+
+    </script>
+
+</body>
+
+</html>
