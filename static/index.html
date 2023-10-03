@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="static/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Transformers.js</title>
 </head>
@@ -17,14 +17,14 @@
         </p>
 
     </main>
-    <script src="scripts.js"></script>
+    <script src="static/scripts.js"></script>
 
     <script type="module">
 
-        import { pipeline } from './scripts.js';
+        import { pipeline ,env} from './static/scripts.js';
+                env.localModelPath = '/static/models/';
 
-
-        let transcriber = await pipeline('automatic-speech-recognition', './whisper-tiny');
+        let transcriber = await pipeline('automatic-speech-recognition', 'whisper-tiny');
 
 
         let mediaRecorder;
@@ -52,9 +52,8 @@
                             const mimeType = "audio/wav"; 
                             const dataURI = `data:${mimeType};base64,${base64Data}`;
                             let output = await transcriber(dataURI,{ language: 'french', task: 'transcribe' });
-                                   console.log(output)
                             if (removePunctuationAndNonEnglish(output.text).toLowerCase().includes("bonjour")) {
-
+                                    console.log(output)
                                 if (currentLangauge === "Urdu") {
                                     currentLangauge = "English"
                                   
@@ -78,14 +77,14 @@
                         mediaRecorder.start();
                         setTimeout(() => {
                             mediaRecorder.stop();
-                        }, 700);
+                        }, 500);
 
                     };
 
                     mediaRecorder.start();
                     setTimeout(() => {
                         mediaRecorder.stop();
-                    }, 700);
+                    }, 500);
                 })
                 .catch(function (error) {
                     console.error('Error accessing microphone:', error);
@@ -96,16 +95,12 @@
             startRecording();
         });
 
-
-
-
         function removePunctuationAndNonEnglish(inputString) {
             var cleanedString = inputString.replace(/[^\w\s]|_/g, "").replace(/\s+/g, " ");
     
             return cleanedString;
           }
           
-
     </script>
 
 </body>

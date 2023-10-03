@@ -1371,7 +1371,7 @@
       version: VERSION,
   
       /////////////////// Model settings ///////////////////
-      allowRemoteModels: true,
+      allowRemoteModels: false,
       remoteHost: 'https://huggingface.co/',
       remotePathTemplate: '{model}/resolve/{revision}/',
   
